@@ -54,6 +54,7 @@ import { GetDistributionByIdHandler } from "../queries/handlers/getdistributionb
 import { GetDistributionByFieldHandler } from "../queries/handlers/getdistributionbyfield.handler";
 import { GetAllDistributionHandler } from "../queries/handlers/getalldistribution.handler";
 import { DistributionCrudSaga } from "../sagas/distribution-crud.saga";
+import { DistributionInventoryThresholdBreachedSyncSaga } from "../sagas/distribution-inventory-threshold-breached-sync.saga";
 
 import { EVENT_TOPICS } from "../events/event-registry";
 
@@ -109,6 +110,7 @@ import { EventStoreService } from "../shared/event-store/event-store.service";
     GetDistributionByFieldHandler,
     GetAllDistributionHandler,
     DistributionCrudSaga,
+    DistributionInventoryThresholdBreachedSyncSaga,
     //Configurations
     {
       provide: 'EVENT_SOURCING_CONFIG',

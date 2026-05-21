@@ -99,6 +99,15 @@ export class DistributionCommandService implements OnModuleInit {
     return entityData?.[field] ?? currentData?.[field] ?? inputData?.[field];
   }
 
+  private normalizeLifecycleValue(value: any): string {
+    return String(value ?? '').trim().toUpperCase().replace(/[\s-]+/g, '_');
+  }
+
+  private isTransferReceivedStatus(status: any): boolean {
+    const normalizedStatus = this.normalizeLifecycleValue(status);
+    return normalizedStatus === 'RECEIVED' || normalizedStatus === 'TRANSFER_RECEIVED';
+  }
+
   private async publishDslDomainEvents(events: BaseEvent[]): Promise<void> {
     for (const event of events) {
       await this.eventPublisher.publish(event as any);
@@ -118,7 +127,24 @@ export class DistributionCommandService implements OnModuleInit {
     const entityData = ((entity ?? {}) as Record<string, any>);
     const currentData = ((current ?? {}) as Record<string, any>);
     const pendingEvents: BaseEvent[] = [];
-// No se definieron business-rules target=service.
+    const nextStatus = this.dslValue(entityData, currentData, inputData, 'status');
+    const previousStatus = currentData?.status;
+
+    if (
+      operation !== 'delete' &&
+      this.isTransferReceivedStatus(nextStatus) &&
+      !this.isTransferReceivedStatus(previousStatus)
+    ) {
+      pendingEvents.push(
+        TransferReceivedEvent.create(
+          String(entityData?.id ?? currentData?.id ?? inputData?.id ?? ''),
+          entityData,
+          String(entityData?.createdBy ?? currentData?.createdBy ?? inputData?.createdBy ?? 'system'),
+          String(entityData?.id ?? currentData?.id ?? inputData?.id ?? ''),
+        ),
+      );
+    }
+
     if (publishEvents) {
       await this.publishDslDomainEvents(pendingEvents);
     }
